@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReCaptcha Enterprise Test</title>
+    <!-- Load ReCaptcha Enterprise with explicit rendering -->
+    <!-- Test Score 0.6 -->
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=XXXXXXXXXXX" async
+        defer></script>
+    <!-- Test Score 0.3-->
+    <!-- <script src="https://www.google.com/recaptcha/enterprise.js?render=XXXXXXXXX" async defer></script> -->
+</head>
+
+<body>
+    <h2>Google ReCaptcha Enterprise Test</h2>
+    <button id="test-recaptcha" onclick="submitForm()">Generate ReCaptcha Token</button>
+    <p id="token-output"></p>
+
+    <script>
+        async function submitForm() {
+            const urlBackend = "http://localhost:7033/api/recaptcha/verify";
+            // Test Score 0.6
+            const siteKey = 'XXXXXXXX';
+            // Test Score 0.3
+            // const siteKey = 'XXXXXX';
+
+            try {
+                // Ensure the ReCaptcha API is loaded
+                if (typeof grecaptcha === 'undefined' || !grecaptcha.enterprise) {
+                    alert("ReCaptcha API not loaded. Please check your site key.");
+                    return;
+                }
+
+                // Explicitly render and execute ReCaptcha
+                grecaptcha.enterprise.ready(async () => {
+                    const token = await grecaptcha.enterprise.execute(siteKey, { action: 'submit' });
+
+                    // Display the token
+                    document.getElementById('token-output').innerText = `Token: ${token}`;
+
+                    // Send the token to the backend for verification
+                    const response = await fetch(urlBackend, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token })
+                    });
+
+                    const result = await response.json();
+                    if (result.Success) {
+                        alert("ReCaptcha verified successfully!");
+                    } else {
+                        alert("ReCaptcha verification failed!");
+                    }
+                });
+            } catch (error) {
+                console.error("Error during ReCaptcha verification:", error);
+                alert("An error occurred during ReCaptcha verification. Please try again.");
+            }
+        }
+    </script>
+</body>
+
+</html>
